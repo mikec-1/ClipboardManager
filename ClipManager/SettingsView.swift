@@ -7,7 +7,8 @@ struct SettingsView: View {
     var body: some View {
         VStack(spacing: 0) {
             
-            // --- TOP CONTENT AREA (Flexible Height) ---
+            // Primary Content Area
+            // We use a TabView to organize settings into distinct categories.
             TabView {
                 GeneralSettingsView()
                     .tabItem {
@@ -19,16 +20,15 @@ struct SettingsView: View {
                         Label("About", systemImage: "info.circle")
                     }
             }
-            // This forces the TabView to take up all available space,
-            // pushing the Footer to the bottom.
+            // Forces the TabView to expand and fill all available vertical space,
+            // pushing the footer to the bottom of the window.
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            // --- BOTTOM FOOTER (Fixed Height) ---
-            // This sits outside the TabView, so it never jumps around.
+            // Fixed Footer
+            // Located outside the TabView to ensure it remains stationary
             ZStack {
-                // Background color for footer (optional, matches system)
                 Color(NSColor.windowBackgroundColor)
-                    .shadow(radius: 0.5) // Subtle separator line
+                    .shadow(radius: 0.5) // Adds a subtle separator line
                 
                 HStack {
                     Spacer()
@@ -39,38 +39,39 @@ struct SettingsView: View {
                 }
                 .padding(.horizontal, 10)
             }
-            .frame(height: 50) // 🔒 FIXED HEIGHT: The button can never move.
+            .frame(height: 50)
         }
         .frame(width: 450, height: 250)
         
+        // Window Management
+        // Forces the Settings window to become the active foreground window when opened,
+        // preventing it from appearing behind other applications.
         .onAppear {
-            // This command forces the app to jump to the front of the screen
             NSApp.activate(ignoringOtherApps: true)
         }
     }
 }
 
-// --- GENERAL SETTINGS ---
+// MARK: - General Settings Tab
 
 struct GeneralSettingsView: View {
     @AppStorage("historyLimit") private var storedLimit: Int = 20
     @State private var selectedLimit: Int = 20
     @State private var launchAtLogin: Bool = SMAppService.mainApp.status == .enabled
     
-    // Constant width for labels to ensure perfect vertical alignment
-    let labelWidth: CGFloat = 100
+    // Fixed width for labels to create a consistent "column" effect
+    private let labelWidth: CGFloat = 100
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) { // Reduced spacing to 12 (was 20)
+        VStack(alignment: .leading, spacing: 12) {
             
-            // --- ROW 1: STARTUP ---
+            // Startup Toggle Section
             HStack(alignment: .center) {
                 Text("Startup:")
                     .frame(width: labelWidth, alignment: .trailing)
                 
                 Toggle("Launch at login", isOn: $launchAtLogin)
                     .toggleStyle(.switch)
-                    // UPDATED SYNTAX: We now accept two parameters (oldValue, newValue)
                     .onChange(of: launchAtLogin) { oldValue, newValue in
                         if newValue {
                             try? SMAppService.mainApp.register()
@@ -81,12 +82,10 @@ struct GeneralSettingsView: View {
                     .padding(.leading, 5)
             }
             
-            // --- DIVIDER (Tight spacing) ---
             Divider()
-//                .padding(.leading, labelWidth)
-                .padding(.vertical, 2) // Very small vertical padding to bring rows closer
+                .padding(.vertical, 2)
             
-            // --- ROW 2: HISTORY SIZE ---
+            // History Limit Section
             HStack(alignment: .center) {
                 Text("History Size:")
                     .frame(width: labelWidth, alignment: .trailing)
@@ -99,12 +98,13 @@ struct GeneralSettingsView: View {
                 }
                 .labelsHidden()
                 .frame(width: 120)
-                .padding(.leading, -1.5)
+                .padding(.leading, -1.5) // Micro-adjustment for visual alignment
             }
             
-            // --- ROW 3: SAVE BUTTON ---
+            // Save Button
             HStack {
-                Color.clear.frame(width: labelWidth, height: 1) // Spacer
+                // Spacer matches label width to align button with controls above
+                Color.clear.frame(width: labelWidth, height: 1)
                 
                 Button("Save Limit") {
                     storedLimit = selectedLimit
@@ -112,7 +112,7 @@ struct GeneralSettingsView: View {
                 .padding(.leading, 5)
             }
             
-            // --- ROW 4: DESCRIPTION ---
+            // Explanatory Text
             Text("The app will automatically remove older items when this limit is reached.")
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -120,13 +120,13 @@ struct GeneralSettingsView: View {
                 .padding(.leading, labelWidth + 13)
                 .padding(.trailing, 20)
             
-            Spacer() // Pushes everything to the top
+            Spacer()
         }
         .padding(.top, 25)
     }
 }
 
-// --- ABOUT SETTINGS ---
+// MARK: - About Tab
 
 struct AboutSettingsView: View {
     var body: some View {
@@ -143,7 +143,7 @@ struct AboutSettingsView: View {
                     .font(.title2)
                     .fontWeight(.bold)
                 
-                Text("Version 1.0")
+                Text("Version 1.0 - Michael Cole")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
@@ -153,8 +153,6 @@ struct AboutSettingsView: View {
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal)
-            
-//            Spacer()
         }
     }
 }

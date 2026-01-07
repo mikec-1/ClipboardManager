@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  ClipManager
-//
-//  Created by Michael Cole on 07.01.26.
-//
-
 import SwiftUI
 
 struct ContentView: View {

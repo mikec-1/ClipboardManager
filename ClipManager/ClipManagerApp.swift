@@ -1,42 +1,37 @@
-//
-//  ClipManagerApp.swift
-//  ClipManager
-//
-//  Created by Michael Cole on 07.01.26.
-//
-
 import SwiftUI
 
 @main
 struct ClipManagerApp: App {
+    
+    // The central state object that monitors clipboard changes.
+    // We use @StateObject here to ensure the watcher instance lives for the entire app lifecycle.
     @StateObject private var watcher = ClipboardWatcher()
     
     var body: some Scene {
+        
+        // Defines the app as a Menu Bar Extra (tray icon) rather than a windowed app.
         MenuBarExtra("Clipboard Manager", systemImage: "doc.on.clipboard") {
             
-            // --- HEADER SECTION ---
-            // A clearer header showing the state
+            // Header View: Displays the app title and current monitoring status
             VStack(alignment: .leading, spacing: 0) {
                 Text("Clipboard Manager")
-                    .font(.headline) // Makes it bold/larger
+                    .font(.headline)
                 
-                // Dynamic text showing status
                 if watcher.isMonitoring {
                     Text("● Monitoring On")
-                        .font(.caption)
+                        .font(.headline)
                         .foregroundColor(.green)
                 } else {
                     Text("○ Paused")
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                        .font(.headline)
+                        .foregroundColor(.red)
                 }
             }
-            .padding(.horizontal) // Adds a little breathing room if rendered as a view, but in standard menu it's ignored (standard menus are rigid).
+            .padding(.horizontal)
             
             Divider()
             
-            // --- GROUP 1: Controls ---
-            // Enable/Disable Button
+            // Primary Controls
             Button(watcher.isMonitoring ? "Disable Monitoring" : "Enable Monitoring") {
                 watcher.isMonitoring.toggle()
             }
@@ -44,12 +39,12 @@ struct ClipManagerApp: App {
             Button("Clear History") {
                 watcher.history.removeAll()
             }
-            .disabled(watcher.history.isEmpty) // Greys out if list is already empty
+            .disabled(watcher.history.isEmpty)
             
             Divider()
             
-            // --- THE LIST ---
-            // We verify the list isn't empty before showing items
+            // History List
+            // Displays the most recent clipboard items as clickable buttons
             if watcher.history.isEmpty {
                 Text("No items copied yet")
                     .italic()
@@ -59,7 +54,7 @@ struct ClipManagerApp: App {
                     Button(action: {
                         copyToClipboard(item)
                     }) {
-                        // Truncate text
+                        // Truncate long text to keep the menu width reasonable
                         Text(item.prefix(40) + (item.count > 40 ? "..." : ""))
                     }
                 }
@@ -67,8 +62,8 @@ struct ClipManagerApp: App {
             
             Divider()
             
-            // --- GROUP 2: System ---
-            
+            // System Actions
+            // SettingsLink automatically connects to the Settings scene defined below
             SettingsLink {
                 Text("Settings...")
             }
@@ -77,15 +72,17 @@ struct ClipManagerApp: App {
             Button("Quit") {
                 NSApplication.shared.terminate(nil)
             }
-            .keyboardShortcut("q") // Cmd + q
+            .keyboardShortcut("q")
         }
-        // --- NEW SCENE ---
-        // This defines the window that opens when "showSettingsWindow:" is called
+        
+        // The Settings Scene
+        // This handles the window that appears when Cmd+, is pressed
         Settings {
             SettingsView()
         }
     }
     
+    // Helper function to write text back to the system clipboard
     func copyToClipboard(_ text: String) {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
