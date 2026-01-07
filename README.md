@@ -21,7 +21,7 @@ If you want to tweak the code or just see how it works:
 
 1.  Clone the repository:
     ```bash
-    git clone [https://github.com/mikec-1/ClipboardManager.git](https://github.com/mikec-1/ClipboardManager.git)
+    git clone https://github.com/mikec-1/ClipboardManager.git
     ```
 2.  Open `ClipManager.xcodeproj` in Xcode.
 3.  Hit **Run** (Cmd+R) to build and start the app.
@@ -47,7 +47,3 @@ This is an open-source project, and I'd love to see what you can add to it!
 **Ideas for future updates:**
 * [ ] Support for images and image previews
 * [ ] Smart Search & Pinning
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
