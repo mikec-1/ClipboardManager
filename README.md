@@ -1,10 +1,10 @@
-# clipped
+# copycat
 
 **Never lose a copied link again.**
 
-clipped is a lightweight, native macOS application written in Swift. It sits quietly in your menu bar and keeps a history of everything you copy—text, code snippets, links, and more—so you can access them whenever you need them.
+copycat is a lightweight, native macOS application written in Swift. It sits quietly in your menu bar and keeps a history of everything you copy, text, code snippets, links, and more, so you can access them whenever you need them.
 
-We've all been there: you copy something new, realizing a second too late that you just overwrote that important email address you needed. clipped fixes that.
+We've all been there: you copy something new, realizing a second too late that you just overwrote that important email address you needed. copycat fixes that.
 
 ## Features
 
@@ -34,7 +34,7 @@ If you want to tweak the code or just see how it works:
 ## How to Use
 
 1.  **Copy as usual:** Use `Cmd+C` on any text, image, or file.
-2.  **Open clipped:** Click the icon in the menu bar (or set up a custom hotkey).
+2.  **Open copycat:** Click the icon in the menu bar (or set up a custom hotkey).
 3.  **Paste:** Select the item you want to restore. It’s automatically copied to your clipboard, ready to paste.
 
 ## Contributing
