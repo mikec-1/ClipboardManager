@@ -6,6 +6,7 @@ struct ClipManagerApp: App {
     // The central state object that monitors clipboard changes.
     // We use @StateObject here to ensure the watcher instance lives for the entire app lifecycle.
     @StateObject private var watcher = ClipboardWatcher()
+    @AppStorage("appTheme") private var appTheme: String = "system"
     
     var body: some Scene {
         
@@ -73,6 +74,7 @@ struct ClipManagerApp: App {
                 NSApplication.shared.terminate(nil)
             }
             .keyboardShortcut("q")
+            .preferredColorScheme(selectedScheme)
         } label: {
             let imageName = watcher.isMonitoring ? "cat_white_small" : "cat_asleep"
             Image(imageName)
@@ -82,6 +84,16 @@ struct ClipManagerApp: App {
         // This handles the window that appears when Cmd+, is pressed
         Settings {
             SettingsView()
+            .preferredColorScheme(selectedScheme)
+        }
+    }
+    
+    // 4. Helper Logic to convert the String to a ColorScheme
+    var selectedScheme: ColorScheme? {
+        switch appTheme {
+        case "light": return .light
+        case "dark": return .dark
+        default: return nil // 'nil' means System default
         }
     }
     

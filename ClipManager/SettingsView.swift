@@ -4,11 +4,12 @@ import ServiceManagement
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     
+    @State private var settingsWindow: NSWindow?
+    
     var body: some View {
         VStack(spacing: 0) {
             
             // Primary Content Area
-            // We use a TabView to organize settings into distinct categories.
             TabView {
                 GeneralSettingsView()
                     .tabItem {
@@ -20,15 +21,12 @@ struct SettingsView: View {
                         Label("About", systemImage: "info.circle")
                     }
             }
-            // Forces the TabView to expand and fill all available vertical space,
-            // pushing the footer to the bottom of the window.
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
             // Fixed Footer
-            // Located outside the TabView to ensure it remains stationary
             ZStack {
                 Color(NSColor.windowBackgroundColor)
-                    .shadow(radius: 0.5) // Adds a subtle separator line
+                    .shadow(radius: 0.5)
                 
                 HStack {
                     Spacer()
@@ -43,29 +41,80 @@ struct SettingsView: View {
         }
         .frame(width: 450, height: 250)
         
-        // Window Management
-        // Forces the Settings window to become the active foreground window when opened,
-        // preventing it from appearing behind other applications.
+        // --- UPDATED WINDOW LOGIC ---
+        .background(WindowAccessor { window in
+            // Capture the window once when created
+            self.settingsWindow = window
+            applyWindowSettings(window)
+        })
+        // This listens for when the window becomes active (re-opened)
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { notification in
+            if let window = notification.object as? NSWindow, window == settingsWindow {
+                // Re-apply the settings every time the window wakes up!
+                applyWindowSettings(window)
+            }
+        }
         .onAppear {
             NSApp.activate(ignoringOtherApps: true)
         }
     }
+    
+    // Helper function to apply the "Always on Top" settings
+    private func applyWindowSettings(_ window: NSWindow) {
+        window.level = .floating
+        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        window.orderFrontRegardless()
+    }
+}
+
+// MARK: - Window Accessor Helper
+struct WindowAccessor: NSViewRepresentable {
+    var callback: (NSWindow) -> Void
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async {
+            if let window = view.window {
+                self.callback(window)
+            }
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
 }
 
 // MARK: - General Settings Tab
-
 struct GeneralSettingsView: View {
     @AppStorage("historyLimit") private var storedLimit: Int = 20
     @State private var selectedLimit: Int = 20
     @State private var launchAtLogin: Bool = SMAppService.mainApp.status == .enabled
     
-    // Fixed width for labels to create a consistent "column" effect
+    @AppStorage("appTheme") private var appTheme: String = "system"
+    
     private let labelWidth: CGFloat = 100
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .center) {
+                Text("Appearance:")
+                    .frame(width: labelWidth, alignment: .trailing)
+                
+                Picker("", selection: $appTheme) {
+                    Text("System").tag("system")
+                    Text("Light").tag("light")
+                    Text("Dark").tag("dark")
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 200)
+                .padding(.leading, -1.5)
+            }
+            .padding(.bottom, 5)
+//            .padding(.top, 30)
             
-            // Startup Toggle Section
+            Divider().padding(.vertical, 2)
+            
+            // Startup Toggle
             HStack(alignment: .center) {
                 Text("Startup:")
                     .frame(width: labelWidth, alignment: .trailing)
@@ -82,10 +131,9 @@ struct GeneralSettingsView: View {
                     .padding(.leading, 5)
             }
             
-            Divider()
-                .padding(.vertical, 2)
+            Divider().padding(.vertical, 2)
             
-            // History Limit Section
+            // History Limit
             HStack(alignment: .center) {
                 Text("History Size:")
                     .frame(width: labelWidth, alignment: .trailing)
@@ -98,36 +146,33 @@ struct GeneralSettingsView: View {
                 }
                 .labelsHidden()
                 .frame(width: 120)
-                .padding(.leading, -1.5) // Micro-adjustment for visual alignment
-            }
-            
-            // Save Button
-            HStack {
-                // Spacer matches label width to align button with controls above
-                Color.clear.frame(width: labelWidth, height: 1)
+                .padding(.leading, -1.5)
                 
+                // Moved Button here to the right
                 Button("Save Limit") {
                     storedLimit = selectedLimit
                 }
-                .padding(.leading, 5)
+                .padding(.leading, 10) // Add a little space between picker and button
             }
             
-            // Explanatory Text
-            Text("The app will automatically remove older items when this limit is reached.")
+            Text("Older items will automatically be removed if limit is reached.")
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.leading, labelWidth + 13)
                 .padding(.trailing, 20)
             
-            Spacer()
+//            Spacer()
         }
-        .padding(.top, 25)
+        
+        .onAppear {
+            // Sync the local state with the stored value when view loads
+            selectedLimit = storedLimit
+        }
     }
 }
 
 // MARK: - About Tab
-
 struct AboutSettingsView: View {
     var body: some View {
         VStack(spacing: 15) {
@@ -139,21 +184,24 @@ struct AboutSettingsView: View {
                 .foregroundColor(.accentColor)
                 .padding(.top, 20)
             
-            VStack {
-                Text("copycat")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                
-                Text("Version 1.0 - Michael Cole")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            
             Text("A simple, private clipboard history tool.\nMade with SwiftUI.")
                 .font(.body)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal)
+            
+            VStack {
+                Text("copycat")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                
+                Text("Version 1.0.0")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                Text("© 2026 Mikey")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
         }
     }
 }
