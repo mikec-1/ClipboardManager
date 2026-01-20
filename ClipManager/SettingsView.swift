@@ -92,8 +92,10 @@ struct GeneralSettingsView: View {
             }
             
             Section {
-                HStack {
-                    Picker("History Size", selection: $selectedLimit) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("History Size")
+                    Spacer()
+                    Picker("", selection: $selectedLimit) {
                         Text("10 items").tag(10)
                         Text("20 items").tag(20)
                         Text("50 items").tag(50)
