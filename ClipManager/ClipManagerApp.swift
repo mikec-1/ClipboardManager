@@ -9,63 +9,112 @@ struct ClipManagerApp: App {
     
     var body: some Scene {
         MenuBarExtra {
-            //header
-            VStack(alignment: .leading, spacing: 0) {
-                Text("copycat")
-                    .font(.headline)
+            VStack(spacing: 0) {
                 
-                if watcher.isMonitoring {
-                    Text("● Monitoring On")
+                //header
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("copycat")
                         .font(.headline)
-                        .foregroundColor(.green)
-                } else {
-                    Text("○ Monitoring Off")
-                        .font(.headline)
-                        .foregroundColor(.red)
-                }
-            }
-            .padding(.horizontal)
-            
-            Divider()
-            
-            Button(watcher.isMonitoring ? "Disable Monitoring" : "Enable Monitoring") {
-                watcher.isMonitoring.toggle()
-            }
-            
-            Button("Clear History") {
-                watcher.history.removeAll()
-            }
-            .disabled(watcher.history.isEmpty)
-            
-            Divider()
-            
-            if watcher.history.isEmpty {
-                Text("No items copied yet")
-                    .italic()
-                    .foregroundColor(.gray)
-            } else {
-                ForEach(watcher.history, id: \.self) { item in
-                    Button(action: {
-                        copyToClipboard(item)
-                    }) {
-                        Text(item.prefix(40) + (item.count > 40 ? "..." : ""))
+                        .foregroundColor(.primary)
+                    
+                    if watcher.isMonitoring {
+                        Text("● Monitoring On")
+//                            .font(.caption).bold()
+                            .font(.headline)
+                            .foregroundColor(.green)
+                    } else {
+                        Text("○ Monitoring Off")
+//                            .font(.caption).bold()
+                            .font(.headline)
+                            .foregroundColor(.red)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading) //header fills the full width
+                .padding(12)
+                .background(Color(nsColor: .windowBackgroundColor))                
+                Divider()
+                
+                //controls
+                HStack(spacing: 12) {
+                    Button(action: {
+                        watcher.isMonitoring.toggle()
+                    }) {
+                        Label(watcher.isMonitoring ? "Pause" : "Resume", systemImage: watcher.isMonitoring ? "pause.fill" : "play.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .controlSize(.small)
+                    
+                    Button(action: {
+                        watcher.history.removeAll()
+                    }) {
+                        Label("Clear", systemImage: "trash")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .controlSize(.small)
+                    .disabled(watcher.history.isEmpty)
+                }
+                .padding(10)
+                
+                Divider()
+                
+                //the list
+                ScrollView {
+                    LazyVStack(spacing: 8) {
+                        if watcher.history.isEmpty {
+                            VStack(spacing: 10) {
+                                Image(systemName: "doc.on.clipboard")
+                                    .font(.largeTitle)
+                                    .foregroundColor(.secondary.opacity(0.5))
+                                Text("No items copied yet")
+                                    .font(.callout)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.top, 30)
+                            .frame(maxWidth: .infinity)
+                        } else {
+                            //loop through ClipboardItem objects
+                            ForEach(watcher.history) { item in
+                                Button {
+                                    copyToClipboard(item.text)
+                                } label: {
+                                    ClipboardItemView(item: item) //pass the full item
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                    .padding(10)
+                }
+                .frame(maxHeight: .infinity)
+                
+                Divider()
+                
+                //footer
+                HStack {
+                    SettingsLink {
+                        Label("Settings", systemImage: "gear")
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.secondary)
+                    .font(.footnote)
+                    .keyboardShortcut(",", modifiers: .command)
+                    
+                    Spacer()
+                    
+                    Button {
+                        NSApplication.shared.terminate(nil)
+                    } label: {
+                        Label("Quit", systemImage: "power")
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.secondary)
+                    .font(.footnote)
+                    .keyboardShortcut("q")
+                }
+                .padding(10)
+                .background(Color(nsColor: .windowBackgroundColor))
             }
-            
-            Divider()
-            
-            //footer
-            SettingsLink {
-                Label("Settings...", systemImage: "gear")
-            }
-            .keyboardShortcut(",", modifiers: .command)
-            
-            Button {
-                NSApplication.shared.terminate(nil)
-            } label: {
-                Label("Quit", systemImage: "xmark.square")
-            }
+            .frame(width: 320, height: 450)
             
         } label: {
             let imageName = watcher.isMonitoring ? "cat_white_small" : "cat_asleep"
@@ -73,8 +122,9 @@ struct ClipManagerApp: App {
             Text(word)
             Image(imageName)
         }
+        .menuBarExtraStyle(.window)
         
-        //Settings window
+        //settings
         Settings {
             SettingsView(appState: appState, clipboardWatcher: watcher)
                 .preferredColorScheme(appState.appearance.colorScheme)
@@ -88,7 +138,7 @@ struct ClipManagerApp: App {
     }
 }
 
-// MARK: - Open Menu with Hotkey
+//open menu with hotkey
 class AppDelegate: NSObject, NSApplicationDelegate {
     var eventMonitor: Any?
     var statusBarButton: NSStatusBarButton?
@@ -97,7 +147,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         //Find the status bar button after a short delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now()) {
             self.findStatusBarButton()
         }
         
@@ -109,6 +159,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self?.unregisterHotkey()
             self?.registerHotkey(newShortcut)
             print("Hotkey updated to: \(newShortcut.displayString)")
+        }
+        
+        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            if event.keyCode == 53 {
+                if let keyWindow = NSApp.keyWindow {
+                    if keyWindow.styleMask.contains(.titled) {
+                        return event
+                    }
+                    
+                    //if no title bar it's the menu bar item and should be closed
+                    self?.openMenuBar()
+                    return nil
+                }
+            }
+            return event
         }
     }
     

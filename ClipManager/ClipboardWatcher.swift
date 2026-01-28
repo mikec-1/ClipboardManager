@@ -1,6 +1,13 @@
 import SwiftUI
 import AppKit
 import Combine
+import Foundation
+
+struct ClipboardItem: Identifiable, Codable, Hashable {
+    var id: UUID = UUID()
+    let text: String
+    let date: Date
+}
 
 struct IgnoredApp: Identifiable, Codable, Hashable {
     var id: String { bundleID }
@@ -10,15 +17,17 @@ struct IgnoredApp: Identifiable, Codable, Hashable {
 
 class ClipboardWatcher: ObservableObject {
     
-    //limits the number of items stored. Persisted via AppStorage.
+    //limits the number of items stored
     @AppStorage("historyLimit") private var historyLimit: Int = 20
     @AppStorage("ignorePasswordManagers") var ignorePasswordManagers: Bool = true
     @AppStorage("ignoreCustomApps") var ignoreCustomApps: Bool = true
     
-
+    private let pasteboard = NSPasteboard.general
+    private var lastChangeCount: Int
+    private var timer: Timer?
+    
     @Published var ignoredApps: [IgnoredApp] = [] {
         didSet {
-            //autosaves to disk whenever this list changes
             if let encoded = try? JSONEncoder().encode(ignoredApps) {
                 UserDefaults.standard.set(encoded, forKey: "customIgnoredApps")
             }
@@ -32,104 +41,96 @@ class ClipboardWatcher: ObservableObject {
         }
     }
     
-    @Published var history: [String] = [] {
+    @Published var history: [ClipboardItem] = [] {
         didSet {
-            //saves changes to UserDefaults when history array is modified
-            UserDefaults.standard.set(history, forKey: "ClipboardHistory")
+            saveHistory()
         }
     }
     
-    private let pasteboard = NSPasteboard.general
-    private var lastChangeCount: Int
-    private var timer: Timer?
-    
+    //restricted apps
     private let builtInRestrictedApps: Set<String> = [
-        "com.agilebits.onepassword7",   // 1Password 7
-        "com.1password.1password",      // 1Password 8
-        "com.lastpass.LastPass",        // LastPass
-        "com.apple.keychainaccess",     // macOS Keychain
-        "com.apple.Passwords",          // Apple Passwords
-        "com.dashlane.Dashlane",        // Dashlane
-        "com.dashlane.DashlaneAgent",   // Dashlane Agent
-        "com.bitwarden.desktop",        // Bitwarden
-        "org.keepassxc.keepassxc"       // KeePassXC
+        "com.agilebits.onepassword7",
+        "com.1password.1password",
+        "com.lastpass.LastPass",
+        "com.apple.keychainaccess",
+        "com.apple.Passwords",
+        "com.dashlane.Dashlane",
+        "com.dashlane.DashlaneAgent",
+        "com.bitwarden.desktop",
+        "org.keepassxc.keepassxc"
     ]
     
     init() {
-        //load saved history from disk on startup
-        if let savedHistory = UserDefaults.standard.stringArray(forKey: "ClipboardHistory") {
-            self.history = savedHistory
-        }
-        
-        if let savedAppsData = UserDefaults.standard.data(forKey: "customIgnoredApps"),
-           let decodedApps = try? JSONDecoder().decode([IgnoredApp].self, from: savedAppsData) {
-            self.ignoredApps = decodedApps
-        }
-
+        //load on startup
         self.lastChangeCount = pasteboard.changeCount
+        loadHistory()
+        loadIgnoredApps()
         startWatching()
     }
     
     func startWatching() {
-        //poll the clipboard every 0.5 seconds to check for changes
+        //every 0.5s check
         timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             self?.checkClipboard()
         }
     }
     
     func updateHistorySize(_ size: Int) {
-            historyLimit = size
-            if history.count > historyLimit {
-                history = Array(history.prefix(historyLimit))
-            }
+        historyLimit = size
+        if history.count > historyLimit {
+            history = Array(history.prefix(historyLimit))
         }
-    
+    }
     
     private func checkClipboard() {
         guard isMonitoring else { return }
         
-        //only proceed if something new is copied
         if pasteboard.changeCount != lastChangeCount {
             lastChangeCount = pasteboard.changeCount
-            //privacy check
-            //app currently in front
+            
+            //security app check
             if let frontApp = NSWorkspace.shared.frontmostApplication,
                let bundleID = frontApp.bundleIdentifier {
                 
-                //checks password app list
-                if ignorePasswordManagers {
-                    if builtInRestrictedApps.contains(bundleID) {
-                        print("Ignored copy from Password Manager (\(bundleID))")
-                        return //stops and doesn't save
-                    }
-                }
-                
-                //checks custom apps
-                if ignoreCustomApps {
-                    //checks if current app ID is in the custom list
-                    if ignoredApps.contains(where: { $0.bundleID == bundleID }) {
-                        print("Custom Rule: Ignored copy from \(frontApp.localizedName ?? bundleID)")
-                        return
-                    }
-                }
+                if ignorePasswordManagers && builtInRestrictedApps.contains(bundleID) { return }
+                if ignoreCustomApps && ignoredApps.contains(where: { $0.bundleID == bundleID }) { return }
             }
-            //privacy end
             
-            //if checks passed save the text
+            //saves item
             if let newString = pasteboard.string(forType: .string) {
-                
-                //removes duplicates
-                if let index = history.firstIndex(of: newString) {
-                    history.remove(at: index)
+                //if exists do nothing
+                if history.contains(where: { $0.text == newString }) {
+                    return
                 }
                 
-                //adds to top
-                history.insert(newString, at: 0)
+                //if not then add to top
+                let newItem = ClipboardItem(text: newString, date: Date())
+                history.insert(newItem, at: 0)
                 
                 if history.count > historyLimit {
                     history.removeLast()
                 }
             }
+        }
+    }
+    //saves history
+    private func saveHistory() {
+        if let encoded = try? JSONEncoder().encode(history) {
+            UserDefaults.standard.set(encoded, forKey: "ClipboardHistoryItems")
+        }
+    }
+    //loads history
+    private func loadHistory() {
+        if let data = UserDefaults.standard.data(forKey: "ClipboardHistoryItems"),
+           let decoded = try? JSONDecoder().decode([ClipboardItem].self, from: data) {
+            self.history = decoded
+        }
+    }
+    //check for custom apps
+    private func loadIgnoredApps() {
+        if let data = UserDefaults.standard.data(forKey: "customIgnoredApps"),
+           let decoded = try? JSONDecoder().decode([IgnoredApp].self, from: data) {
+            self.ignoredApps = decoded
         }
     }
 }
