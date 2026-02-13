@@ -1,6 +1,5 @@
 # copycat <img width="25" height="25" alt="output-onlinepngtools" src="https://github.com/user-attachments/assets/de5fc6ce-1867-40c3-969e-8e412f5eac30" />
 
-
 **Never lose a copied link again.**
 
 copycat is a lightweight, native macOS application written in Swift. It sits quietly in your menu bar and keeps a history of everything you copy, text, code snippets, links, and more, so you can access them whenever you need them.
@@ -17,20 +16,20 @@ We've all been there: you copy something new, realizing a second too late that y
 
 ## Installation
 
-### Option 1: Build from Source
-If you want to tweak the code or just see how it works:
+### Option 1: Download
+You can download the latest release directly from the [Releases](https://github.com/mikec-1/copycat/releases) page. Download the `.zip` file, unzip it, and move the `copycat.app` to your Applications folder.
 
+*(Note: If macOS shows an "unidentified developer" warning, go to **System Settings > Privacy & Security**, scroll down, and allow the app to run).*
+
+### Option 2: Build from Source
 1.  Clone the repository:
     ```bash
-    git clone https://github.com/mikec-1/copycat.git
+    git clone [https://github.com/mikec-1/copycat.git](https://github.com/mikec-1/copycat.git)
     ```
 2.  Open `ClipManager.xcodeproj` in Xcode.
 3.  Hit **Run** (Cmd+R) to build and start the app.
 
 *(Note: You will need Xcode 14+ installed)*
-
-### Option 2: Download
-*Once we have a release ready, you can download the latest `.dmg` from the [Releases](https://github.com/mikec-1/copycat/releases) page.*
 
 ## How to Use
 
@@ -40,7 +39,7 @@ If you want to tweak the code or just see how it works:
 
 ## Contributing
 
-This is an open-source project, and I'd love to see what you can add to it!
+This is an open-source project, and any ideas or feedback is always appreciated.
 
 * Found a bug? Open an [Issue](https://github.com/mikec-1/copycat/issues).
 * Have a cool idea? Fork the repo and submit a Pull Request.
