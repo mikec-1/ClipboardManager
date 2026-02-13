@@ -22,7 +22,7 @@ If you want to tweak the code or just see how it works:
 
 1.  Clone the repository:
     ```bash
-    git clone https://github.com/mikec-1/ClipboardManager.git
+    git clone https://github.com/mikec-1/copycat.git
     ```
 2.  Open `ClipManager.xcodeproj` in Xcode.
 3.  Hit **Run** (Cmd+R) to build and start the app.
@@ -30,7 +30,7 @@ If you want to tweak the code or just see how it works:
 *(Note: You will need Xcode 14+ installed)*
 
 ### Option 2: Download
-*Once we have a release ready, you can download the latest `.dmg` from the [Releases](https://github.com/mikec-1/ClipboardManager/releases) page.*
+*Once we have a release ready, you can download the latest `.dmg` from the [Releases](https://github.com/mikec-1/copycat/releases) page.*
 
 ## How to Use
 
@@ -42,7 +42,7 @@ If you want to tweak the code or just see how it works:
 
 This is an open-source project, and I'd love to see what you can add to it!
 
-* Found a bug? Open an [Issue](https://github.com/mikec-1/ClipboardManager/issues).
+* Found a bug? Open an [Issue](https://github.com/mikec-1/copycat/issues).
 * Have a cool idea? Fork the repo and submit a Pull Request.
 
 **Ideas for future updates:**
