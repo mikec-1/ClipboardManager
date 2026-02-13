@@ -483,6 +483,23 @@ struct AboutView: View {
                     .foregroundColor(.secondary)
             }
             
+            Link(destination: URL(string: "https://github.com/mikec-1/copycat")!) {
+                HStack(spacing: 6) {
+                    Image(systemName: "lightbulb.fill")
+                    Text("Github - Feedback or Ideas")
+                }
+                .foregroundColor(.blue)
+            }
+            .buttonStyle(.plain)
+            .onHover { inside in
+                if inside {
+                    NSCursor.pointingHand.push()
+                }
+                else {
+                    NSCursor.pop()
+                }
+            }
+            
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
