@@ -7,6 +7,19 @@ struct ClipManagerApp: App {
     @StateObject private var appState = AppState()
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
+    @State private var showControls = true
+    @State private var searchText = ""
+
+    var filteredHistory: [ClipboardItem] {
+        if searchText.isEmpty {
+            return watcher.history
+        } else {
+            return watcher.history.filter { item in
+                item.text.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+    }
+    
     var body: some Scene {
         MenuBarExtra {
             VStack(spacing: 0) {
@@ -31,49 +44,100 @@ struct ClipManagerApp: App {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading) //header fills the full width
                 .padding(12)
-                .background(Color(nsColor: .windowBackgroundColor))                
+                .background(Color(nsColor: .windowBackgroundColor))    
+                
                 Divider()
                 
-                //controls
-                HStack(spacing: 12) {
-                    Button(action: {
-                        watcher.isMonitoring.toggle()
-                    }) {
-                        Label(watcher.isMonitoring ? "Pause" : "Resume", systemImage: watcher.isMonitoring ? "pause.fill" : "play.fill")
-                            .frame(maxWidth: .infinity)
+                if showControls {
+                    VStack(spacing: 0) {
+                        //controls
+                        HStack(spacing: 12) {
+                            Button(action: {
+                                watcher.isMonitoring.toggle()
+                            }) {
+                                Label(watcher.isMonitoring ? "Pause" : "Resume", systemImage: watcher.isMonitoring ? "pause.fill" : "play.fill")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .controlSize(.small)
+                            
+                            Button(action: {
+                                watcher.history.removeAll()
+                            }) {
+                                Label("Clear", systemImage: "trash")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .controlSize(.small)
+                            .disabled(watcher.history.isEmpty)
+                        }
+                        .padding(10)
+                        
+                        //search Bar
+                        HStack(spacing: 6) {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(.secondary)
+                                .font(.system(size: 12))
+                            
+                            TextField("Search history...", text: $searchText)
+                                .textFieldStyle(.plain)
+                                .font(.callout)
+                            
+                            if !searchText.isEmpty {
+                                Button(action: { searchText = "" }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.secondary)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(6)
+                        .background(Color.primary.opacity(0.05))
+                        .cornerRadius(6)
+                        .padding(.horizontal, 10)
+                        .padding(.bottom, 8)
+                        
                     }
-                    .controlSize(.small)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+                
+                ZStack {
+                    Divider() //adding a line
                     
                     Button(action: {
-                        watcher.history.removeAll()
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            showControls.toggle()
+                        }
                     }) {
-                        Label("Clear", systemImage: "trash")
-                            .frame(maxWidth: .infinity)
+                        //up and down arrow
+                        Image(systemName: showControls ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.secondary.opacity(1.5))
+                            .frame(width: 20, height: 12)
+                            .background(Color(nsColor: .windowBackgroundColor)) // put line behind the arrow
                     }
-                    .controlSize(.small)
-                    .disabled(watcher.history.isEmpty)
+                    .buttonStyle(.plain)
                 }
-                .padding(10)
-                
-                Divider()
+                .padding(.bottom, -2)
                 
                 //the list
                 ScrollView {
                     LazyVStack(spacing: 8) {
-                        if watcher.history.isEmpty {
+                        //check filteredHistory instead of watcher.history
+                        if filteredHistory.isEmpty {
                             VStack(spacing: 10) {
-                                Image(systemName: "doc.on.clipboard")
+                                //dynamic empty state
+                                Image(systemName: searchText.isEmpty ? "doc.on.clipboard" : "magnifyingglass")
                                     .font(.largeTitle)
                                     .foregroundColor(.secondary.opacity(0.5))
-                                Text("No items copied yet")
+                                
+                                Text(searchText.isEmpty ? "No items copied yet" : "No results found")
                                     .font(.callout)
                                     .foregroundColor(.secondary)
                             }
                             .padding(.top, 30)
                             .frame(maxWidth: .infinity)
                         } else {
-                            //loop through ClipboardItem objects
-                            ForEach(watcher.history) { item in
+                            // loop through filtered search
+                            ForEach(filteredHistory) { item in
                                 Button {
                                     copyToClipboard(item.text)
                                 } label: {
@@ -117,10 +181,23 @@ struct ClipManagerApp: App {
             .frame(width: 320, height: 450)
             
         } label: {
-            let imageName = watcher.isMonitoring ? "cat_white_small" : "cat_asleep"
-            let word = watcher.isMonitoring ? " Monitoring" : " Asleep"
-            Text(word)
-            Image(imageName)
+            HStack(spacing: 4) {
+                let imageName = watcher.isMonitoring ? "catnew" : "cat_asleep"
+                
+                //switch image
+                switch appState.menuBarStyle {
+                    case .iconAndText:
+                        Image(imageName)
+                        Text(watcher.isMonitoring ? "Monitoring" : "Asleep")
+                            .font(.body)
+                        
+                    case .iconOnly:
+                        Image(imageName)
+                        
+                    case .symbolOnly:
+                        Image(systemName: watcher.isMonitoring ? "clipboard.fill" : "clipboard")
+                }
+            }
         }
         .menuBarExtraStyle(.window)
         

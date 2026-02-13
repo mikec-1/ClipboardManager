@@ -2,6 +2,8 @@ import SwiftUI
 import Combine
 
 class AppState: ObservableObject {
+    @AppStorage("menuBarStyle") var menuBarStyle: MenuBarStyle = .iconAndText
+    
     @Published var appearance: AppearanceMode {
         didSet {
             UserDefaults.standard.set(appearance.rawValue, forKey: "appTheme")
@@ -26,4 +28,12 @@ class AppState: ObservableObject {
         let savedTheme = UserDefaults.standard.string(forKey: "appTheme") ?? "System"
         self.appearance = AppearanceMode(rawValue: savedTheme) ?? .system
     }
+    
+    enum MenuBarStyle: String, CaseIterable, Identifiable {
+            case iconAndText = "Icon & Text"
+            case iconOnly = "Icon Only"
+            case symbolOnly = "Symbol Only"
+            
+            var id: String { self.rawValue }
+        }
 }

@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "cat_asleep(18x18).png",
+      "filename" : "cat_white(18x18).png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "cat_asleep(36x36).png",
+      "filename" : "cat_white(36x36).png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "cat_asleep(64x64).png",
+      "filename" : "cat_white(64x64).png",
       "idiom" : "universal",
       "scale" : "3x"
     }

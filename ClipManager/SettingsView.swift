@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 import Combine
 import Carbon
 
+// MARK: - Keyboard Shortcut Logic
 struct KeyboardShortcut: Codable, Equatable {
     let keyCode: UInt32
     let modifiers: UInt32
@@ -36,7 +37,7 @@ struct KeyboardShortcut: Codable, Equatable {
     }
     
     static var defaultShortcut: KeyboardShortcut {
-        KeyboardShortcut(keyCode: 7, modifiers: UInt32(cmdKey + shiftKey)) //cmd shift x
+        KeyboardShortcut(keyCode: 7, modifiers: UInt32(cmdKey + shiftKey)) // cmd shift x
     }
 }
 
@@ -73,7 +74,6 @@ class ShortcutManager: ObservableObject {
 // MARK: - Shortcut Recorder View
 struct ShortcutRecorderView: View {
     @ObservedObject var manager = ShortcutManager.shared
-    @State private var isRecording = false
     @State private var showSheet = false
     
     var body: some View {
@@ -87,10 +87,9 @@ struct ShortcutRecorderView: View {
                 .background(Color.primary.opacity(0.1))
                 .cornerRadius(6)
             
-            Button("Edit") {
-                showSheet = true
-            }
-            .buttonStyle(.bordered)
+            Button("Edit") { 
+                showSheet = true }
+                .buttonStyle(.bordered)
         }
         .sheet(isPresented: $showSheet) {
             ShortcutRecorderSheet(isPresented: $showSheet)
@@ -108,45 +107,28 @@ struct ShortcutRecorderSheet: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            Text("Record Keyboard Shortcut")
-                .font(.title2)
-                .bold()
-            
-            Text("Press your desired key combination")
-                .foregroundColor(.secondary)
+            Text("Record Keyboard Shortcut").font(.title2).bold()
+            Text("Press your desired key combination").foregroundColor(.secondary)
             
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(isRecording ? Color.blue.opacity(0.1) : Color.gray.opacity(0.1))
                     .frame(height: 100)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(isRecording ? Color.blue : Color.gray, lineWidth: 2)
-                    )
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(isRecording ? Color.blue : Color.gray, lineWidth: 2))
                 
                 if let shortcut = recordedShortcut {
-                    Text(shortcut.displayString)
-                        .font(.system(size: 32, design: .monospaced))
-                        .bold()
+                    Text(shortcut.displayString).font(.system(size: 32, design: .monospaced)).bold()
                 } else if isRecording {
-                    Text("Waiting for input...")
-                        .foregroundColor(.secondary)
-                        .italic()
+                    Text("Waiting for input...").foregroundColor(.secondary).italic()
                 } else {
-                    Text(manager.currentShortcut.displayString)
-                        .font(.system(size: 32, design: .monospaced))
-                        .bold()
-                        .foregroundColor(.secondary)
+                    Text(manager.currentShortcut.displayString).font(.system(size: 32, design: .monospaced)).bold().foregroundColor(.secondary)
                 }
             }
             .padding(.horizontal, 40)
             
             HStack(spacing: 12) {
-                Button("Cancel") {
-                    stopRecording()
-                    isPresented = false
-                }
-                .keyboardShortcut(.cancelAction)
+                Button("Cancel") { stopRecording(); isPresented = false }
+                    .keyboardShortcut(.cancelAction)
                 
                 if isRecording {
                     Button("Stop Recording") {
@@ -198,11 +180,9 @@ struct ShortcutRecorderSheet: View {
             
             //accept if at least one modifier is pressed
             if carbonModifiers != 0 {
-                let shortcut = KeyboardShortcut(
+                recordedShortcut = KeyboardShortcut(
                     keyCode: UInt32(event.keyCode),
-                    modifiers: carbonModifiers
-                )
-                recordedShortcut = shortcut
+                    modifiers: carbonModifiers)
             }
             
             return nil //consume event
@@ -224,8 +204,6 @@ struct SettingsView: View {
     @ObservedObject var appState: AppState
     @ObservedObject var clipboardWatcher: ClipboardWatcher
     
-    @State private var settingsWindow: NSWindow?
-    
     var body: some View {
         TabView {
             GeneralSettingsView(appState: appState, clipboardWatcher: clipboardWatcher)
@@ -246,27 +224,15 @@ struct SettingsView: View {
         .frame(width: 500, height: 500)
         .preferredColorScheme(appState.appearance.colorScheme)
         
-        .background(WindowAccessor { window in
-            self.settingsWindow = window
-            configureSettingsWindow(window)
-        })
-        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { notification in
-            if let window = notification.object as? NSWindow, window == settingsWindow {
-                configureSettingsWindow(window)
-            }
+        //toggles the dock icon if settings window appears/disappears
+        .onAppear {
+            NSApp.setActivationPolicy(.regular) //show dock icon
+            NSApp.activate(ignoringOtherApps: true) //bring to front
         }
-    }
-    
-    private func configureSettingsWindow(_ window: NSWindow) {
-        window.level = .floating
-        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        window.titlebarAppearsTransparent = false
-        window.titleVisibility = .visible
-        window.styleMask.insert(.fullSizeContentView)
-        window.orderFrontRegardless()
-        window.standardWindowButton(.miniaturizeButton)?.isHidden = true
-        window.standardWindowButton(.zoomButton)?.isHidden = true
-        window.appearance = NSApp.appearance
+        .onDisappear {
+            NSApp.setActivationPolicy(.accessory) //hide dock icon
+            NSApp.hide(nil)
+        }
     }
 }
 
@@ -281,33 +247,35 @@ struct GeneralSettingsView: View {
     
     var body: some View {
         Form {
-            Section {
+            Section(header: Text("Appearance")) {
                 Picker("Appearance", selection: $appState.appearance) {
                     ForEach(AppState.AppearanceMode.allCases, id: \.self) { mode in
                         Text(mode.rawValue).tag(mode)
                     }
                 }
                 .pickerStyle(.segmented)
-                .padding(.top, 4)
-            } header: {
-                Text("Appearance")
+                
+                Picker("Menu Bar Style", selection: $appState.menuBarStyle) {
+                    ForEach(AppState.MenuBarStyle.allCases, id: \.self) { style in
+                        Text(style.rawValue).tag(style)
+                    }
+                }
+                .pickerStyle(.menu)
             }
             
-            Section {
+            Section(header: Text("Startup")) {
                 Toggle("Launch at Login", isOn: $launchAtLogin)
-                    .onChange(of: launchAtLogin) { oldValue, newValue in
+                    .onChange(of: launchAtLogin) { _, newValue in
                         if newValue {
                             try? SMAppService.mainApp.register()
                         } else {
                             try? SMAppService.mainApp.unregister()
                         }
                     }
-            } header: {
-                Text("Startup")
             }
             
-            Section {
-                HStack(alignment: .firstTextBaseline) {
+            Section(header: Text("Clipboard History")) {
+                HStack {
                     Text("History Size")
                     Spacer()
                     Picker("", selection: $selectedLimit) {
@@ -318,7 +286,6 @@ struct GeneralSettingsView: View {
                     }
                     .labelsHidden()
                     .frame(width: 120)
-                    
                     Button("Save Limit") {
                         clipboardWatcher.updateHistorySize(selectedLimit)
                     }
@@ -326,11 +293,9 @@ struct GeneralSettingsView: View {
                 Text("Older items will automatically be removed if limit is reached.")
                     .font(.caption)
                     .foregroundColor(.secondary)
-            } header: {
-                Text("Clipboard History")
             }
             
-            Section {
+            Section(header: Text("Keyboard Shortcuts")) {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
                         Text("Toggle Menu:")
@@ -344,8 +309,6 @@ struct GeneralSettingsView: View {
                         .foregroundColor(.secondary)
                 }
                 .padding(.vertical, 4)
-            } header: {
-                Text("Keyboard Shortcuts")
             }
         }
         .formStyle(.grouped)
@@ -365,7 +328,7 @@ struct PrivacySettingsView: View {
     
     var body: some View {
         Form {
-            Section {
+            Section(header: Text("Auto-Detection")) {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(spacing: 8) {
                         Image(systemName: "shield.checkered")
@@ -401,12 +364,9 @@ struct PrivacySettingsView: View {
                     .font(.caption)
                 }
                 .padding(.vertical, 8)
-                
-            } header: {
-                Text("Auto-Detection")
             }
             
-            Section {
+            Section(header: Text("Custom Rules"), footer: Text("copycat will stop recording your Clipboard in added Apps.")) {
                 VStack(alignment: .leading, spacing: 10) {
                     Toggle("Ignore Custom Applications", isOn: $ignoreCustomApps)
                     
@@ -427,7 +387,6 @@ struct PrivacySettingsView: View {
                                     
                                     Text(app.name)
                                     Spacer()
-                                    
                                     Button(action: {
                                         deleteApp(app)
                                     }) {
@@ -447,11 +406,6 @@ struct PrivacySettingsView: View {
                     .disabled(!ignoreCustomApps)
                 }
                 .padding(.vertical, 4)
-                
-            } header: {
-                Text("Custom Rules")
-            } footer: {
-                Text("copycat will stop recording your Clipboard in added Apps.")
             }
         }
         .formStyle(.grouped)
@@ -498,19 +452,29 @@ struct AboutView: View {
     var body: some View {
         VStack(spacing: 20) {
             Spacer()
-            
+//            Image(systemName: "doc.on.clipboard")
             Image("cat_white_full")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 100, height: 100)
-                .shadow(radius: 5)
+                .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+            
+            //@Environment(\.colorScheme) var colorScheme
+            // apply a color filter based on the mode
+            // light Mode -> turn icon black
+            // dark Mode -> icon white
+//            .foregroundColor(colorScheme == .light ? .black : .white)
+            // Since App Icons are usually not templates, we use .colorMultiply or .renderingMode
+//            .colorMultiply(colorScheme == .light ? .black : .white)
+//            .shadow(radius: 5)
+            
             
             VStack(spacing: 8) {
                 Text("copycat")
                     .font(.largeTitle)
                     .bold()
                 
-                Text("Version 2.0")
+                Text("Version 2.1.0")
                     .font(.title3)
                     .foregroundColor(.secondary)
                 
@@ -523,44 +487,4 @@ struct AboutView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-}
-
-// MARK: - Helper Views
-struct ShortcutRow: View {
-    let keys: String
-    let desc: String
-    
-    var body: some View {
-        HStack {
-            Text(keys)
-                .font(.system(.caption, design: .monospaced))
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .background(Color.primary.opacity(0.1))
-                .cornerRadius(4)
-            
-            Text(desc)
-                .font(.caption)
-                .foregroundColor(.secondary)
-            Spacer()
-        }
-    }
-}
-
-struct WindowAccessor: NSViewRepresentable {
-    var callback: (NSWindow) -> Void
-
-    func makeNSView(context: Context) -> NSView {
-        let view = NSView()
-        DispatchQueue.main.async {
-            if let window = view.window {
-                self.callback(window)
-            }
-        }
-        return view
-    }
-
-    func updateNSView(_ nsView: NSView, context: Context) {}
 }
