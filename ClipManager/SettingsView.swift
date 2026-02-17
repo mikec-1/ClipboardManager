@@ -245,6 +245,8 @@ struct GeneralSettingsView: View {
     @State private var selectedLimit: Int = 20
     @State private var launchAtLogin: Bool = SMAppService.mainApp.status == .enabled
     
+    @AppStorage("clearOnQuit") private var clearOnQuit: Bool = false
+    @AppStorage("showFullFilePath") private var showFullFilePath: Bool = false
     //sparkle
     @StateObject private var updaterViewModel = UpdaterViewModel()
     
@@ -305,10 +307,13 @@ struct GeneralSettingsView: View {
                     }
                     .labelsHidden()
                     .frame(width: 120)
-                    Button("Save Limit") {
-                        clipboardWatcher.updateHistorySize(selectedLimit)
+                    .onChange(of: selectedLimit) { oldValue, newValue in
+                        clipboardWatcher.updateHistorySize(newValue)
+                        print(newValue)
                     }
                 }
+                Toggle("Clear unpinned history on quit", isOn: $clearOnQuit)
+                Toggle("Show full file path when copying files", isOn: $showFullFilePath)
                 Text("Older items will automatically be removed if limit is reached.")
                     .font(.caption)
                     .foregroundColor(.secondary)

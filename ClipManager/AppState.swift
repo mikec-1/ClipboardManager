@@ -2,7 +2,7 @@ import SwiftUI
 import Combine
 
 class AppState: ObservableObject {
-    @AppStorage("menuBarStyle") var menuBarStyle: MenuBarStyle = .iconAndText
+    @AppStorage("menuBarStyle") var menuBarStyle: MenuBarStyle = .iconOnly
     
     @Published var appearance: AppearanceMode {
         didSet {
@@ -34,6 +34,8 @@ class AppState: ObservableObject {
             case iconOnly = "Icon Only"
             case symbolOnly = "Symbol Only"
             
-            var id: String { self.rawValue }
+        var id: String {
+            self.rawValue
         }
+    }
 }
