@@ -4,8 +4,6 @@
 
 copycat is a lightweight, native macOS application written in Swift. It sits quietly in your menu bar and keeps a history of everything you copy, text, code snippets, links, and more, so you can access them whenever you need them.
 
-We've all been there: you copy something new, realizing a second too late that you just overwrote that important email address you needed. copycat fixes that.
-
 ## Features
 
 * **Native & Fast:** Built 100% in Swift for macOS, no Electron bloat.
