@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Copycat 2.2.0 Release Notes</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 20px;
+            margin: 0;
+            cursor: default;
+        }
+
+        /* LIGHT MODE (Default) */
+        body {
+            background-color: #ffffff;
+            color: #333333;
+        }
+        h1 {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        h2 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            color: #007aff; /* System Blue */
+        }
+        ul {
+            padding-left: 20px;
+            margin: 0;
+        }
+        li {
+            margin-bottom: 6px;
+        }
+        code {
+            font-family: "Menlo", monospace;
+            font-size: 12px;
+            background-color: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        /* BADGES */
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+        .new { background-color: #34c759; color: white; } /* Green */
+        .fix { background-color: #ff9500; color: white; } /* Orange */
+        .sec { background-color: #5856d6; color: white; } /* Purple */
+
+        /* DARK MODE OVERRIDES */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #262626; /* Dark Grey for Sparkle Windows */
+                color: #dfdfdf;
+            }
+            h1 {
+                border-bottom: 1px solid #404040;
+                color: #ffffff;
+            }
+            h2 {
+                color: #5ac8fa; /* Light Blue */
+            }
+            code {
+                background-color: #404040;
+                color: #fff;
+            }
+            .new { background-color: #30d158; color: black; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🚀 Copycat v2.2.0</h1>
+    <p>This is a massive update bringing native file previews, rich text support, and power-user tools.</p>
+
+    <h2>✨ New Features</h2>
+    <ul>
+        <li><span class="badge new">New</span> <strong>Rich Text Support:</strong> Copying from Word, Safari, or Pages now preserves <b>Bold</b>, <i>Italic</i>, and <span style="color:#ff3b30">Colors</span>.</li>
+        <li><span class="badge new">New</span> <strong>Image & File Previews:</strong> 
+            <ul>
+                <li>Copied images now show a thumbnail preview.</li>
+                <li>Copied files (PDFs, folders) show their native system icon.</li>
+            </ul>
+        </li>
+        <li><span class="badge new">New</span> <strong>Global Hotkey:</strong> Toggle the clipboard history from anywhere using a custom keyboard shortcut.</li>
+    </ul>
+
+    <h2>🛠 Power User Tools</h2>
+    <ul>
+        <li><strong>Native File Handling:</strong>
+            <ul>
+                <li>Right-click an image to <strong>Open in Preview</strong> (even if it's just in memory!).</li>
+                <li>Right-click a file to <strong>Reveal in Finder</strong> or Copy File Path.</li>
+            </ul>
+        </li>
+        <li><strong>Plain Text Paste:</strong> Hold <code>Option (⌥)</code> while clicking any item to instantly strip formatting and paste as plain text.</li>
+        <li><strong>Full Path Mode:</strong> New setting to display the full file path in the history list.</li>
+    </ul>
+
+    <h2>🔒 Privacy & Security</h2>
+    <ul>
+        <li><span class="badge sec">Secure</span> <strong>Password Manager Detection:</strong> Automatically ignores copies from 1Password, Keychain, Bitwarden, and others.</li>
+        <li><span class="badge sec">Secure</span> <strong>App Blacklist:</strong> Exclude specific apps from history recording.</li>
+        <li><strong>Auto-Cleanup:</strong> Automatically removes temporary image files when the app quits to save disk space.</li>
+    </ul>
+
+</body>
+</html>
