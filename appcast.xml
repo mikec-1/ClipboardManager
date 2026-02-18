@@ -3,6 +3,24 @@
     <channel>
         <title>copycat</title>
         <item>
+            <title>2.2.0</title>
+            <pubDate>Wed, 18 Feb 2026 13:00:00 +0100</pubDate>
+            <sparkle:version>95</sparkle:version>
+            <sparkle:shortVersionString>2.2.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            
+            <sparkle:releaseNotesLink>
+                https://mikec-1.github.io/copycat/release_notes_2.2.0.html
+            </sparkle:releaseNotesLink>
+
+            <enclosure 
+                url="https://github.com/mikec-1/copycat/releases/download/v2.2.0/copycat_2.2.0.zip" 
+                length="2326453" 
+                type="application/zip"
+                sparkle:edSignature="8TouOcxqF5Klico3r2w3j6lHqS5kLjJ1cMmE2Y7wnNOXHMgqRgaByAUbzgb+UGv9iJEmmP4CdgKBkVv0e82YDA=="
+            />
+        </item>
+        <item>
             <title>2.1.1</title>
             <pubDate>Fri, 13 Feb 2026 17:07:33 +0100</pubDate>
             <sparkle:version>80</sparkle:version>
